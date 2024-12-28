@@ -1,6 +1,4 @@
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api'
-  : 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -22,7 +20,7 @@ const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
 
 export const readExcelData = async () => {
   try {
-    const response = await fetchWithRetry(`${API_URL}/beers`);
+    const response = await fetch(`${API_URL}/beers`);
     const data = await response.json();
     return data;
   } catch (error) {
@@ -33,16 +31,13 @@ export const readExcelData = async () => {
 
 export const writeExcelData = async (data) => {
   try {
-    const response = await fetchWithRetry(
-      `${API_URL}/beers`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data }),
-      }
-    );
+    const response = await fetch(`${API_URL}/beers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ data }),
+    });
     const result = await response.json();
     return result.success;
   } catch (error) {

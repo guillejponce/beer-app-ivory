@@ -21,13 +21,27 @@ const initializeDataDirectory = () => {
   console.log('EXCEL_FILE:', EXCEL_FILE);
   
   try {
-    // In production, we expect /data to exist as it's mounted by Render
-    if (process.env.NODE_ENV !== 'production') {
-      // Only create directory in development
-      if (!fs.existsSync(DATA_DIR)) {
-        console.log(`Creating directory: ${DATA_DIR}`);
-        fs.mkdirSync(DATA_DIR, { recursive: true });
+    // Always try to create the directory
+    if (!fs.existsSync(DATA_DIR)) {
+      console.log(`Creating directory: ${DATA_DIR}`);
+      try {
+        fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o777 });
+        console.log('Directory created successfully');
+      } catch (dirError) {
+        console.error('Error creating directory:', dirError);
+        // Continue even if directory creation fails, it might already exist
       }
+    } else {
+      console.log('Directory already exists');
+    }
+
+    // Try to set directory permissions anyway
+    try {
+      fs.chmodSync(DATA_DIR, 0o777);
+      console.log('Directory permissions set');
+    } catch (chmodError) {
+      console.error('Error setting directory permissions:', chmodError);
+      // Continue even if chmod fails
     }
     
     // Create Excel file if it doesn't exist
@@ -36,8 +50,19 @@ const initializeDataDirectory = () => {
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet([]);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'BeerCounter');
-      XLSX.writeFile(workbook, EXCEL_FILE);
-      console.log('Excel file created successfully');
+      
+      // Try to create the file
+      try {
+        XLSX.writeFile(workbook, EXCEL_FILE);
+        console.log('Excel file created successfully');
+        
+        // Try to set file permissions
+        fs.chmodSync(EXCEL_FILE, 0o666);
+        console.log('Excel file permissions set');
+      } catch (writeError) {
+        console.error('Error writing Excel file:', writeError);
+        throw writeError; // Re-throw to be caught by outer try-catch
+      }
     } else {
       console.log('Excel file already exists');
       // Try to read the file to verify permissions
@@ -52,9 +77,27 @@ const initializeDataDirectory = () => {
   }
 };
 
-// Initialize immediately in production, with delay in development
+// Initialize with retries in production
 if (process.env.NODE_ENV === 'production') {
-  initializeDataDirectory();
+  let retries = 5;
+  const retryInterval = 3000; // 3 seconds
+
+  const initializeWithRetry = () => {
+    console.log(`Initialization attempt ${6 - retries} of 5`);
+    try {
+      initializeDataDirectory();
+    } catch (error) {
+      if (retries > 1) {
+        retries--;
+        console.log(`Retrying in ${retryInterval/1000} seconds...`);
+        setTimeout(initializeWithRetry, retryInterval);
+      } else {
+        console.error('Failed to initialize after all retries');
+      }
+    }
+  };
+
+  initializeWithRetry();
 } else {
   setTimeout(initializeDataDirectory, 1000);
 }
