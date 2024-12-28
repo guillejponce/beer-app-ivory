@@ -8,22 +8,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Ensure we're using the persistent disk in production
-const DATA_DIR = process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname, '..', 'data');
-const EXCEL_FILE = path.join(DATA_DIR, 'beer_counter.xlsx');
+// Store the Excel file in the project directory
+const EXCEL_FILE = path.join(__dirname, 'beer_counter.xlsx');
 
 console.log('Environment:', process.env.NODE_ENV);
-console.log('Using DATA_DIR:', DATA_DIR);
+console.log('Using Excel file:', EXCEL_FILE);
 
-const initializeDataDirectory = () => {
-  console.log('Initializing data directory...');
+const initializeExcelFile = () => {
+  console.log('Checking Excel file...');
   
   try {
-    if (!fs.existsSync(DATA_DIR)) {
-      console.log(`Creating directory: ${DATA_DIR}`);
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    
     if (!fs.existsSync(EXCEL_FILE)) {
       console.log('Creating new Excel file...');
       const workbook = XLSX.utils.book_new();
@@ -32,12 +26,12 @@ const initializeDataDirectory = () => {
       XLSX.writeFile(workbook, EXCEL_FILE);
     }
   } catch (error) {
-    console.error('Error in initializeDataDirectory:', error);
+    console.error('Error in initializeExcelFile:', error);
   }
 };
 
-// Initialize data directory
-initializeDataDirectory();
+// Initialize Excel file
+initializeExcelFile();
 
 // API Routes
 app.get('/api/beers', (req, res) => {

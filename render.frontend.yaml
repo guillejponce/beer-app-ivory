@@ -6,4 +6,4 @@ services:
     staticPublishPath: ./build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://beer-counter-api.onrender.com 
+        value: http://localhost:3001/api 
