@@ -2,9 +2,27 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? '/api'
   : 'http://localhost:3001/api';
 
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      console.log(`Attempt ${i + 1} failed. Retrying in ${delay}ms...`);
+      await wait(delay);
+      if (i === retries - 1) throw error;
+    }
+  }
+};
+
 export const readExcelData = async () => {
   try {
-    const response = await fetch(`${API_URL}/beers`);
+    const response = await fetchWithRetry(`${API_URL}/beers`);
     const data = await response.json();
     return data;
   } catch (error) {
@@ -15,25 +33,22 @@ export const readExcelData = async () => {
 
 export const writeExcelData = async (data) => {
   try {
-    const response = await fetch(`${API_URL}/beers`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data }),
-    });
+    const response = await fetchWithRetry(
+      `${API_URL}/beers`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data }),
+      }
+    );
     const result = await response.json();
     return result.success;
   } catch (error) {
     console.error('Error writing to Excel file:', error);
     return false;
   }
-};
-
-export const deleteBeerRecord = async (id) => {
-  const currentData = await readExcelData();
-  const updatedData = currentData.filter(record => record.ID !== id);
-  return writeExcelData(updatedData);
 };
 
 export const addBeerRecord = async (player, brand, volume, amount) => {
@@ -51,6 +66,12 @@ export const addBeerRecord = async (player, brand, volume, amount) => {
   };
 
   const updatedData = [...currentData, newRecord];
+  return writeExcelData(updatedData);
+};
+
+export const deleteBeerRecord = async (id) => {
+  const currentData = await readExcelData();
+  const updatedData = currentData.filter(record => record.ID !== id);
   return writeExcelData(updatedData);
 };
 
