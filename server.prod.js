@@ -9,9 +9,19 @@ app.use(cors());
 app.use(express.json());
 
 // Ensure we're using the persistent disk in production
-const DATA_DIR = process.env.NODE_ENV === 'production'
-  ? process.env.DATA_DIR  // This will be /data in Render
-  : path.join(__dirname, 'data');
+let DATA_DIR;
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.DATA_DIR) {
+    console.error('DATA_DIR environment variable is not set in production!');
+    DATA_DIR = '/data'; // Fallback to default Render disk mount path
+  } else {
+    DATA_DIR = process.env.DATA_DIR;
+  }
+} else {
+  DATA_DIR = path.join(__dirname, 'data');
+}
+
+console.log('Using DATA_DIR:', DATA_DIR);
 
 const EXCEL_FILE = path.join(DATA_DIR, 'beer_counter.xlsx');
 
@@ -20,29 +30,33 @@ const initializeDataDirectory = () => {
   console.log('DATA_DIR:', DATA_DIR);
   console.log('EXCEL_FILE:', EXCEL_FILE);
   
-  // Create directory if it doesn't exist
-  if (!fs.existsSync(DATA_DIR)) {
-    console.log(`Creating directory: ${DATA_DIR}`);
-    fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o777 });
-  }
+  try {
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(DATA_DIR)) {
+      console.log(`Creating directory: ${DATA_DIR}`);
+      fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o777 });
+    }
 
-  // Set directory permissions
-  fs.chmodSync(DATA_DIR, 0o777);
-  
-  // Create Excel file if it doesn't exist
-  if (!fs.existsSync(EXCEL_FILE)) {
-    console.log('Creating new Excel file...');
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet([]);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'BeerCounter');
-    XLSX.writeFile(workbook, EXCEL_FILE);
-    // Set file permissions
-    fs.chmodSync(EXCEL_FILE, 0o666);
-  } else {
-    console.log('Excel file already exists');
+    // Set directory permissions
+    fs.chmodSync(DATA_DIR, 0o777);
+    
+    // Create Excel file if it doesn't exist
+    if (!fs.existsSync(EXCEL_FILE)) {
+      console.log('Creating new Excel file...');
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet([]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'BeerCounter');
+      XLSX.writeFile(workbook, EXCEL_FILE);
+      // Set file permissions
+      fs.chmodSync(EXCEL_FILE, 0o666);
+    } else {
+      console.log('Excel file already exists');
+    }
+    
+    console.log('Data directory initialized successfully');
+  } catch (error) {
+    console.error('Error initializing data directory:', error);
   }
-  
-  console.log('Data directory initialized successfully');
 };
 
 // Initialize data directory after a short delay to ensure disk is mounted
