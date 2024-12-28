@@ -22,7 +22,8 @@ export default function Stats() {
   const [stats, setStats] = useState({
     rankings: [],
     brandStats: [],
-    summary: { totalBeers: 0, totalVolume: 0, totalParticipants: 0, averageBeers: 0 }
+    summary: { totalBeers: 0, totalVolume: 0, totalParticipants: 0, averageBeers: 0 },
+    dailyStats: []
   });
   const [sortBy, setSortBy] = useState('volume');
   const [isLoading, setIsLoading] = useState(true);
@@ -300,6 +301,71 @@ export default function Stats() {
                 <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
               </BarChart>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-6 text-amber-900">📈 Consumo por Día</h2>
+          <div className="w-full overflow-x-auto">
+            <BarChart 
+              width={800} 
+              height={300} 
+              data={stats.dailyStats}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
+              <XAxis 
+                dataKey="date" 
+                stroke="#4A3728"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(date) => {
+                  const [year, month, day] = date.split('-');
+                  return `${day}/${month}`;
+                }}
+              />
+              <YAxis stroke="#4A3728" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#FFFBEB', 
+                  borderColor: '#FFD700',
+                  borderRadius: '0.375rem'
+                }}
+                labelFormatter={(date) => {
+                  const [year, month, day] = date.split('-');
+                  return `${day}/${month}/${year}`;
+                }}
+              />
+              <Legend />
+              <Bar dataKey="volume" name="Volumen (L)" fill="#8B4513" />
+              <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
+            </BarChart>
+          </div>
+
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full divide-y divide-amber-200">
+              <thead className="bg-amber-50">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Fecha</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-amber-100">
+                {stats.dailyStats.slice().reverse().map((day) => (
+                  <tr key={day.date}>
+                    <td className="px-3 py-4 whitespace-nowrap font-medium text-amber-900">
+                      {new Date(day.date).toLocaleDateString('es-CL')}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                      {day.volume}L
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                      {day.quantity}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 

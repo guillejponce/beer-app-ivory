@@ -38,6 +38,12 @@ export const BEER_BRANDS = [
   { value: 'stella_artois', label: 'Stella Artois' },
   { value: 'peroni', label: 'Peroni' },
   { value: 'vitokos_brew', label: 'Vitokos Brew' },
+  { value: 'royal', label: 'Royal' },
+  { value: 'tamango', label: 'Tamango' },
+  { value: 'jester', label: 'Jester' },
+  { value: 'mahou', label: 'Mahou' },
+  { value: 'dolbek', label: 'Dolbek' },
+  { value: 'otras', label: 'Otras' },
 ];
 
 export const VOLUMES = [

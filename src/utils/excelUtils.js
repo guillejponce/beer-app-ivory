@@ -106,6 +106,19 @@ export const getStats = async () => {
     return acc;
   }, {});
 
+  const dailyStats = data.reduce((acc, record) => {
+    if (!acc[record.DATE]) {
+      acc[record.DATE] = {
+        date: record.DATE,
+        volume: 0,
+        quantity: 0
+      };
+    }
+    acc[record.DATE].volume += record.TOTAL_VOLUME;
+    acc[record.DATE].quantity += record.AMOUNT;
+    return acc;
+  }, {});
+
   const totalBeers = rankings.reduce((sum, person) => sum + person.totalQuantity, 0);
   const totalVolume = rankings.reduce((sum, person) => sum + person.totalVolume, 0);
   const totalParticipants = rankings.length;
@@ -113,8 +126,13 @@ export const getStats = async () => {
 
   return {
     rankings,
-    brandStats: Object.values(brandStats)
-      .sort((a, b) => b.volume - a.volume),
+    brandStats: Object.values(brandStats).sort((a, b) => b.volume - a.volume),
+    dailyStats: Object.values(dailyStats)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map(day => ({
+        ...day,
+        volume: Number(day.volume.toFixed(2))
+      })),
     summary: {
       totalBeers,
       totalVolume: Number(totalVolume.toFixed(2)),
