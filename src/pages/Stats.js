@@ -203,7 +203,7 @@ export default function Stats() {
                         </div>
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {player.totalVolume}ml
+                        {player.totalVolume}L
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
                         {player.totalQuantity}
@@ -237,7 +237,7 @@ export default function Stats() {
                 <Legend />
                 <Bar 
                   dataKey={sortBy === 'volume' ? 'totalVolume' : 'totalQuantity'} 
-                  name={sortBy === 'volume' ? 'Volumen (ml)' : 'Cantidad'} 
+                  name={sortBy === 'volume' ? 'Volumen (L)' : 'Cantidad'} 
                   fill="#D4AF37"
                 />
               </BarChart>
@@ -264,7 +264,7 @@ export default function Stats() {
                         {brand.name}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {brand.volume}ml
+                        {brand.volume}L
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
                         {brand.quantity}
@@ -296,7 +296,7 @@ export default function Stats() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="volume" name="Volumen (ml)" fill="#8B4513" />
+                <Bar dataKey="volume" name="Volumen (L)" fill="#8B4513" />
                 <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
               </BarChart>
             </div>
@@ -309,7 +309,7 @@ export default function Stats() {
             <div className="bg-amber-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-amber-900">Total Volumen</h3>
               <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.totalVolume}ml 🍺
+                {stats.summary.totalVolume}L 🍺
               </p>
             </div>
             <div className="bg-amber-50 p-4 rounded-lg">
@@ -327,7 +327,7 @@ export default function Stats() {
             <div className="bg-amber-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-amber-900">Promedio/Jugador</h3>
               <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.averageBeers}ml 📊
+                {stats.summary.averageBeers}L 📊
               </p>
             </div>
           </div>

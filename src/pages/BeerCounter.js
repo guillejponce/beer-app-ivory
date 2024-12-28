@@ -133,14 +133,41 @@ export default function BeerCounter() {
             <h2 className="text-2xl font-bold mb-6 text-center text-amber-900">¿Quién eres? 🎮</h2>
             <Select
               options={PLAYERS}
-              onChange={setCurrentPlayer}
+              onChange={handlePlayerSelect}
               className="w-full"
               styles={customStyles}
               placeholder="Selecciona tu nombre..."
             />
-            {passcodeError && (
-              <div className="text-red-500 text-sm mt-2">{passcodeError}</div>
-            )}
+          </div>
+        ) : !isVerified ? (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold mb-6 text-center text-amber-900">Verificación 🔒</h2>
+            <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-amber-700">
+                  Número de Jugador
+                </label>
+                <input
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => {
+                    setPasscode(e.target.value);
+                    setPasscodeError('');
+                  }}
+                  className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
+                  placeholder="Ingresa tu número..."
+                />
+              </div>
+              {passcodeError && (
+                <div className="text-red-500 text-sm mt-2">{passcodeError}</div>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+              >
+                Verificar
+              </button>
+            </form>
           </div>
         ) : (
           <div className="space-y-6">
@@ -197,6 +224,7 @@ export default function BeerCounter() {
                   <table className="min-w-full divide-y divide-amber-200">
                     <thead className="bg-amber-50">
                       <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Jugador</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Marca</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Vol.</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Cant.</th>
@@ -205,7 +233,11 @@ export default function BeerCounter() {
                     </thead>
                     <tbody className="bg-white divide-y divide-amber-100">
                       {todayRecords.map((record) => (
-                        <tr key={record.ID} className="hover:bg-amber-50">
+                        <tr key={record.ID} className={record.PLAYER === currentPlayer.label ? 'bg-amber-50' : 'hover:bg-amber-50'}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">
+                            {record.PLAYER}
+                            {record.PLAYER === currentPlayer.label && ' 👈'}
+                          </td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.BRAND}</td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.VOLUME}ml</td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.AMOUNT}</td>
