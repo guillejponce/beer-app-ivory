@@ -113,7 +113,7 @@ export default function Stats() {
     <div className="min-h-screen bg-amber-50 py-6 px-4">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-amber-900">🎯 Meta del Equipo - 10.000 beers</h2>
+          <h2 className="text-2xl font-bold mb-6 text-amber-900">🎯 Meta del Equipo - 5.000 beers</h2>
           <div className="space-y-4">
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
