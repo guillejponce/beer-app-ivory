@@ -6,4 +6,4 @@ services:
     staticPublishPath: ./build
     envVars:
       - key: REACT_APP_API_URL
-        value: http://localhost:3001/api 
+        value: https://beer-app-ivory-backend.onrender.com/api 

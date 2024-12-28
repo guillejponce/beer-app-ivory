@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { getStats } from '../utils/excelUtils';
+import { Link } from 'react-router-dom';
 
 const GOAL = 10000;
 const DEADLINE = new Date('2025-12-31T23:59:59');
@@ -96,7 +97,7 @@ export default function Stats() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-amber-50">
         <div className="text-lg" style={{ color: COLORS.text }}>
-          ¡Aún no hay chelas registradas en el Ivory Toast! ¿Qué están esperando? 🍻
+          ¡Aún no hay chelas registradas! ¿Qué están esperando, jugadores? 🍻
         </div>
       </div>
     );
@@ -108,229 +109,238 @@ export default function Stats() {
   const dailyGoal = calculateDailyGoal();
 
   return (
-    <div className="space-y-8 p-6 min-h-screen" style={{ backgroundColor: COLORS.background }}>
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2" style={{ color: COLORS.text }}>
-          🍺 Ivory Toast 🍻
-        </h1>
-        <p className="text-lg" style={{ color: COLORS.secondary }}>
-          El club más sediento del mundo
-        </p>
-      </div>
-
-      {/* Goal Progress */}
-      <div className="bg-white rounded-xl shadow-md p-6" style={{ borderTop: `4px solid ${COLORS.primary}` }}>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.text }}>
-          🎯 Meta Grupal del Ivory Toast: ¡10.000 Chelas!
-        </h2>
-        <div className="space-y-4">
-          <div className="relative pt-1">
-            <div className="flex mb-2 items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full" 
-                      style={{ backgroundColor: COLORS.primary, color: COLORS.text }}>
-                  Progreso Épico
-                </span>
+    <div className="min-h-screen bg-amber-50 py-6 px-4">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-6 text-amber-900">🎯 Meta del Equipo - 10.000 beers</h2>
+          <div className="space-y-4">
+            <div className="relative pt-1">
+              <div className="flex mb-2 items-center justify-between">
+                <div>
+                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-amber-600 text-white">
+                    Progreso Épico
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-semibold inline-block text-amber-900">
+                    {calculateProgress().toFixed(1)}% 🏆
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold inline-block" style={{ color: COLORS.text }}>
-                  {progress.toFixed(1)}% 🏆
-                </span>
-              </div>
-            </div>
-            <div className="overflow-hidden h-6 mb-4 text-xs flex rounded-full bg-amber-100">
-              <div
-                style={{ 
-                  width: `${progress}%`,
-                  backgroundColor: COLORS.primary,
-                  transition: 'width 1s ease-in-out'
-                }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center animate-pulse"
-              >
-                {progress > 10 && `${stats.summary.totalBeers} / ${GOAL}`}
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.primary + '20' }}>
-              <h3 className="text-sm font-medium" style={{ color: COLORS.text }}>Chelas Conquistadas</h3>
-              <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-                {stats.summary.totalBeers} 🍺
-              </p>
-            </div>
-            <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.secondary + '20' }}>
-              <h3 className="text-sm font-medium" style={{ color: COLORS.text }}>Faltan</h3>
-              <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-                {GOAL - stats.summary.totalBeers} 🎯
-              </p>
-            </div>
-            <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.accent + '20' }}>
-              <h3 className="text-sm font-medium" style={{ color: COLORS.text }}>Días Para Lograrlo</h3>
-              <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-                {daysLeft} 📅
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: COLORS.warning + '20' }}>
-            <h3 className="text-sm font-medium" style={{ color: COLORS.text }}>
-              Misión Diaria del Ivory Toast
-            </h3>
-            <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-              {dailyGoal} chelas por día 🍻
-            </p>
-            <p className="text-xs mt-1" style={{ color: COLORS.text }}>
-              ¡Vamos por esas 10.000 antes del 31 de diciembre de 2025!
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Rankings */}
-      <div className="bg-white rounded-xl shadow-md p-6" style={{ borderTop: `4px solid ${COLORS.secondary}` }}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: COLORS.text }}>
-            👑 Leyendas del Ivory Toast
-          </h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm" style={{ color: COLORS.text }}>Ordenar por:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="text-sm border rounded-md px-2 py-1 focus:outline-none focus:ring-2"
-              style={{ borderColor: COLORS.primary, color: COLORS.text }}
-            >
-              <option value="volume">Litros</option>
-              <option value="quantity">Cantidad</option>
-            </select>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-amber-200">
-            <thead className="bg-amber-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.text }}>
-                  Rango
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.text }}>
-                  Leyenda
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.text }}>
-                  Litros Totales
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.text }}>
-                  Chelas
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-amber-100">
-              {sortedRankings.map((person, index) => (
-                <tr key={person.name} 
-                    className="transition-colors hover:bg-amber-50"
-                    style={{ backgroundColor: index === 0 ? COLORS.primary + '20' : 'white' }}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className="font-bold text-lg">
-                      {index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+              <div className="w-full bg-amber-200 rounded-full h-4">
+                <div
+                  className="bg-amber-600 h-4 rounded-full transition-all duration-500 animate-pulse"
+                  style={{ width: `${calculateProgress()}%` }}
+                >
+                  {calculateProgress() > 10 && (
+                    <span className="absolute inset-0 text-center text-xs text-white leading-4">
+                      {stats.summary.totalBeers} / {GOAL}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" style={{ color: COLORS.text }}>
-                    {person.name}
-                    {index === 0 ? ' 👑' : index === 1 ? ' 🌟' : index === 2 ? ' ⭐' : ''}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.secondary }}>
-                    {person.totalVolume.toFixed(1)}L 🍺
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.secondary }}>
-                    {person.totalQuantity} 🍻
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl shadow-md p-6" style={{ borderTop: `4px solid ${COLORS.accent}` }}>
-          <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.text }}>
-            📊 Consumo por Leyenda
-          </h2>
-          <div className="w-full overflow-x-auto">
-            <BarChart width={500} height={300} data={sortedRankings} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.primary + '40'} />
-              <XAxis dataKey="name" stroke={COLORS.text} />
-              <YAxis stroke={COLORS.text} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: COLORS.background, borderColor: COLORS.primary }}
-              />
-              <Legend />
-              <Bar 
-                dataKey={sortBy === 'volume' ? 'totalVolume' : 'totalQuantity'} 
-                name={sortBy === 'volume' ? 'Litros 🍺' : 'Chelas 🍻'} 
-                fill={COLORS.chart}
-              />
-            </BarChart>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-amber-900">Chelas Tomadas</h3>
+                <p className="text-3xl font-bold text-amber-700">
+                  {stats.summary.totalBeers} 🍺
+                </p>
+              </div>
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-amber-900">Faltan</h3>
+                <p className="text-3xl font-bold text-amber-700">
+                  {GOAL - stats.summary.totalBeers} 🎯
+                </p>
+              </div>
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-amber-900">Días Restantes</h3>
+                <p className="text-3xl font-bold text-amber-700">
+                  {calculateDaysLeft()} 📅
+                </p>
+              </div>
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-amber-900">Meta Diaria</h3>
+                <p className="text-3xl font-bold text-amber-700">
+                  {calculateDailyGoal()} 🍻
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6" style={{ borderTop: `4px solid ${COLORS.success}` }}>
-          <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.text }}>
-            🍺 Chelas Favoritas
-          </h2>
-          <div className="w-full overflow-x-auto">
-            <BarChart width={500} height={300} data={stats.brandStats} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.primary + '40'} />
-              <XAxis dataKey="name" stroke={COLORS.text} />
-              <YAxis stroke={COLORS.text} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: COLORS.background, borderColor: COLORS.primary }}
-              />
-              <Legend />
-              <Bar dataKey="volume" name="Litros 🍺" fill={COLORS.secondary} />
-            </BarChart>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-amber-900">🏆 Ranking</h2>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-amber-900"
+              >
+                <option value="volume">Por Volumen</option>
+                <option value="quantity">Por Cantidad</option>
+              </select>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-amber-200">
+                <thead className="bg-amber-50">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Jugador</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-amber-100">
+                  {getSortedRankings().map((player, index) => (
+                    <tr key={player.name} className={index === 0 ? 'bg-amber-50' : ''}>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="text-lg mr-2">{index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''}</span>
+                          <span className="font-medium text-amber-900">{player.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                        {player.totalVolume}ml
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                        {player.totalQuantity}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 text-amber-900">📊 Consumo por Jugador</h2>
+            <div className="w-full overflow-x-auto">
+              <BarChart 
+                width={500} 
+                height={300} 
+                data={getSortedRankings()}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
+                <XAxis dataKey="name" stroke="#4A3728" />
+                <YAxis stroke="#4A3728" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#FFFBEB', 
+                    borderColor: '#FFD700',
+                    borderRadius: '0.375rem'
+                  }}
+                />
+                <Legend />
+                <Bar 
+                  dataKey={sortBy === 'volume' ? 'totalVolume' : 'totalQuantity'} 
+                  name={sortBy === 'volume' ? 'Volumen (ml)' : 'Cantidad'} 
+                  fill="#D4AF37"
+                />
+              </BarChart>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Summary */}
-      <div className="bg-white rounded-xl shadow-md p-6" style={{ borderTop: `4px solid ${COLORS.primary}` }}>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.text }}>
-          📈 Resumen del Ivory Toast
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.primary + '20' }}>
-            <h3 className="text-lg font-medium" style={{ color: COLORS.text }}>Total Litros</h3>
-            <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-              {stats.summary.totalVolume.toFixed(1)}L 🍺
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 text-amber-900">🍺 Marcas Favoritas</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-amber-200">
+                <thead className="bg-amber-50">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Marca</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-amber-100">
+                  {stats.brandStats.map((brand) => (
+                    <tr key={brand.name}>
+                      <td className="px-3 py-4 whitespace-nowrap font-medium text-amber-900">
+                        {brand.name}
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                        {brand.volume}ml
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
+                        {brand.quantity}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.secondary + '20' }}>
-            <h3 className="text-lg font-medium" style={{ color: COLORS.text }}>Total Chelas</h3>
-            <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-              {stats.summary.totalBeers} 🍻
-            </p>
-          </div>
-          <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.accent + '20' }}>
-            <h3 className="text-lg font-medium" style={{ color: COLORS.text }}>Leyendas</h3>
-            <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-              {stats.summary.totalParticipants} 👑
-            </p>
-          </div>
-          <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.success + '20' }}>
-            <h3 className="text-lg font-medium" style={{ color: COLORS.text }}>Promedio/Leyenda</h3>
-            <p className="text-3xl font-bold" style={{ color: COLORS.secondary }}>
-              {stats.summary.averageBeers}L 🏆
-            </p>
+
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 text-amber-900">📊 Consumo por Marca</h2>
+            <div className="w-full overflow-x-auto">
+              <BarChart 
+                width={500} 
+                height={300} 
+                data={stats.brandStats}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
+                <XAxis dataKey="name" stroke="#4A3728" />
+                <YAxis stroke="#4A3728" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#FFFBEB', 
+                    borderColor: '#FFD700',
+                    borderRadius: '0.375rem'
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="volume" name="Volumen (ml)" fill="#8B4513" />
+                <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
+              </BarChart>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="text-center mt-8 pb-8">
-        <p className="text-sm" style={{ color: COLORS.text }}>
-          Ivory Toast - Haciendo historia, una chela a la vez 🍻
-        </p>
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-6 text-amber-900">📈 Resumen Total</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-amber-900">Total Volumen</h3>
+              <p className="text-3xl font-bold text-amber-700">
+                {stats.summary.totalVolume}ml 🍺
+              </p>
+            </div>
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-amber-900">Total Chelas</h3>
+              <p className="text-3xl font-bold text-amber-700">
+                {stats.summary.totalBeers} 🍻
+              </p>
+            </div>
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-amber-900">Jugadores</h3>
+              <p className="text-3xl font-bold text-amber-700">
+                {stats.summary.totalParticipants} 👥
+              </p>
+            </div>
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-amber-900">Promedio/Jugador</h3>
+              <p className="text-3xl font-bold text-amber-700">
+                {stats.summary.averageBeers}ml 📊
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center pt-6">
+          <Link
+            to="/"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700"
+          >
+            ← Volver a Registrar
+          </Link>
+        </div>
       </div>
     </div>
   );
