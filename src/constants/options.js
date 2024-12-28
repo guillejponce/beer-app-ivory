@@ -1,7 +1,20 @@
 export const PLAYERS = [
-  { value: 'Guille', label: 'Player 1', passcode: '14' },
-  { value: 'Gianni', label: 'Player 2', passcode: '29' },
-  { value: 'Armando', label: 'Player 3', passcode: '00' },
+  { value: 'Guille', label: 'Guille', passcode: '14' },
+  { value: 'Gianni', label: 'Gianni', passcode: '29' },
+  { value: 'Armando', label: 'Armando', passcode: '00' },
+  { value: 'Pablo', label: 'Pablo', passcode: '08' },
+  { value: 'Titan', label: 'Titan', passcode: '20' },
+  { value: 'Nico', label: 'Nico', passcode: '15' },
+  { value: 'Kiki', label: 'Kiki', passcode: '10' },
+  { value: 'Vitoko', label: 'Vitoko', passcode: '85' },
+  { value: 'Unger', label: 'Unger', passcode: '01' },
+  { value: 'Hernández', label: 'Hernández', passcode: '07' },
+  { value: 'Garreaud', label: 'Garreaud', passcode: '30' },
+  { value: 'Landa', label: 'Landa', passcode: '09' },
+  { value: 'Igi', label: 'Igi', passcode: '11' },
+  { value: 'Gosen', label: 'Gosen', passcode: '33' },
+  { value: 'Rivera', label: 'Rivera', passcode: '191' },
+  { value: 'Sandoval', label: 'Sandoval', passcode: '69' },
   // Add more players as needed
 ];
 
