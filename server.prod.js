@@ -9,21 +9,11 @@ app.use(cors());
 app.use(express.json());
 
 // Ensure we're using the persistent disk in production
-let DATA_DIR;
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.DATA_DIR) {
-    console.error('DATA_DIR environment variable is not set in production!');
-    DATA_DIR = '/data'; // Fallback to default Render disk mount path
-  } else {
-    DATA_DIR = process.env.DATA_DIR;
-  }
-} else {
-  DATA_DIR = path.join(__dirname, 'data');
-}
-
-console.log('Using DATA_DIR:', DATA_DIR);
-
+const DATA_DIR = process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname, 'data');
 const EXCEL_FILE = path.join(DATA_DIR, 'beer_counter.xlsx');
+
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Using DATA_DIR:', DATA_DIR);
 
 const initializeDataDirectory = () => {
   console.log('Initializing data directory...');
@@ -31,14 +21,14 @@ const initializeDataDirectory = () => {
   console.log('EXCEL_FILE:', EXCEL_FILE);
   
   try {
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(DATA_DIR)) {
-      console.log(`Creating directory: ${DATA_DIR}`);
-      fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o777 });
+    // In production, we expect /data to exist as it's mounted by Render
+    if (process.env.NODE_ENV !== 'production') {
+      // Only create directory in development
+      if (!fs.existsSync(DATA_DIR)) {
+        console.log(`Creating directory: ${DATA_DIR}`);
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
     }
-
-    // Set directory permissions
-    fs.chmodSync(DATA_DIR, 0o777);
     
     // Create Excel file if it doesn't exist
     if (!fs.existsSync(EXCEL_FILE)) {
@@ -47,31 +37,34 @@ const initializeDataDirectory = () => {
       const worksheet = XLSX.utils.json_to_sheet([]);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'BeerCounter');
       XLSX.writeFile(workbook, EXCEL_FILE);
-      // Set file permissions
-      fs.chmodSync(EXCEL_FILE, 0o666);
+      console.log('Excel file created successfully');
     } else {
       console.log('Excel file already exists');
+      // Try to read the file to verify permissions
+      const workbook = XLSX.readFile(EXCEL_FILE);
+      console.log('Excel file is readable');
     }
-    
-    console.log('Data directory initialized successfully');
   } catch (error) {
-    console.error('Error initializing data directory:', error);
+    console.error('Error in initializeDataDirectory:', error);
+    if (error.code === 'EACCES') {
+      console.error('Permission denied. Please check directory and file permissions.');
+    }
   }
 };
 
-// Initialize data directory after a short delay to ensure disk is mounted
-setTimeout(initializeDataDirectory, 5000);
-
-// Serve static files from the React build
-app.use(express.static(path.join(__dirname, 'build')));
+// Initialize immediately in production, with delay in development
+if (process.env.NODE_ENV === 'production') {
+  initializeDataDirectory();
+} else {
+  setTimeout(initializeDataDirectory, 1000);
+}
 
 // API Routes
 app.get('/api/beers', (req, res) => {
   try {
-    // Ensure directory and file exist before reading
     if (!fs.existsSync(EXCEL_FILE)) {
-      console.log('Excel file not found, initializing...');
-      initializeDataDirectory();
+      console.log('Excel file not found on read request');
+      return res.json([]);
     }
     
     const workbook = XLSX.readFile(EXCEL_FILE);
@@ -87,27 +80,20 @@ app.get('/api/beers', (req, res) => {
 
 app.post('/api/beers', (req, res) => {
   try {
-    // Ensure directory and file exist before writing
-    if (!fs.existsSync(DATA_DIR)) {
-      console.log('Data directory not found, initializing...');
-      initializeDataDirectory();
-    }
-    
     const { data } = req.body;
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'BeerCounter');
     XLSX.writeFile(workbook, EXCEL_FILE);
-    
-    // Reset file permissions after writing
-    fs.chmodSync(EXCEL_FILE, 0o666);
-    
     res.json({ success: true });
   } catch (error) {
     console.error('Error writing Excel file:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Serve static files from the React build
+app.use(express.static(path.join(__dirname, 'build')));
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {

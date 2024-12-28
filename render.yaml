@@ -12,4 +12,6 @@ services:
       name: beer-data
       mountPath: /data
       sizeGB: 1
+      initializeCommand: |
+        mkdir -p /data && chmod 777 /data
     autoDeploy: false 
