@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'rec
 import { getStats } from '../utils/excelUtils';
 import { Link } from 'react-router-dom';
 
-const GOAL = 10000;
+const GOAL = 5000;
 const DEADLINE = new Date('2025-12-31T23:59:59');
 
 // Ivory Toast theme colors
