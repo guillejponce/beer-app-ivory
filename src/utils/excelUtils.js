@@ -44,10 +44,10 @@ export const addBeerRecord = async (player, brand, volume, amount) => {
     ID: newId,
     PLAYER: player,
     BRAND: brand,
-    DATE: new Date().toISOString().split('T')[0], // Format: YYYY-MM-DD
+    DATE: new Date().toISOString().split('T')[0],
     VOLUME: volume,
     AMOUNT: amount,
-    TOTAL_VOLUME: volume * amount // Adding total volume for easier calculations
+    TOTAL_VOLUME: volume * amount
   };
 
   const updatedData = [...currentData, newRecord];
@@ -57,49 +57,53 @@ export const addBeerRecord = async (player, brand, volume, amount) => {
 export const getStats = async () => {
   const data = await readExcelData();
   
-  // Group beers by player for both volume and quantity
-  const playerStats = data.reduce((acc, record) => {
-    const totalVolume = record.TOTAL_VOLUME || (record.VOLUME * (record.AMOUNT || 1));
-    const amount = record.AMOUNT || 1;
-
+  const beersByPerson = data.reduce((acc, record) => {
     if (!acc[record.PLAYER]) {
       acc[record.PLAYER] = {
-        name: record.PLAYER,
         totalVolume: 0,
         totalQuantity: 0
       };
     }
-
-    acc[record.PLAYER].totalVolume += totalVolume;
-    acc[record.PLAYER].totalQuantity += amount;
+    acc[record.PLAYER].totalVolume += record.TOTAL_VOLUME;
+    acc[record.PLAYER].totalQuantity += record.AMOUNT;
     return acc;
   }, {});
 
-  // Convert to array
-  const rankings = Object.values(playerStats);
+  const rankings = Object.entries(beersByPerson)
+    .map(([name, stats]) => ({
+      name,
+      totalVolume: Number(stats.totalVolume.toFixed(2)),
+      totalQuantity: stats.totalQuantity
+    }))
+    .sort((a, b) => b.totalVolume - a.totalVolume);
 
-  const totalBeers = rankings.reduce((sum, player) => sum + player.totalQuantity, 0);
-  const totalVolume = rankings.reduce((sum, player) => sum + player.totalVolume, 0);
-  const totalParticipants = rankings.length;
-  const averageBeers = totalParticipants ? (totalVolume / totalParticipants).toFixed(1) : 0;
-
-  // Get brand statistics using total volume
   const brandStats = data.reduce((acc, record) => {
-    const totalVolume = record.TOTAL_VOLUME || (record.VOLUME * (record.AMOUNT || 1));
-    acc[record.BRAND] = (acc[record.BRAND] || 0) + totalVolume;
+    if (!acc[record.BRAND]) {
+      acc[record.BRAND] = {
+        name: record.BRAND,
+        volume: 0,
+        quantity: 0
+      };
+    }
+    acc[record.BRAND].volume += record.TOTAL_VOLUME;
+    acc[record.BRAND].quantity += record.AMOUNT;
     return acc;
   }, {});
+
+  const totalBeers = rankings.reduce((sum, person) => sum + person.totalQuantity, 0);
+  const totalVolume = rankings.reduce((sum, person) => sum + person.totalVolume, 0);
+  const totalParticipants = rankings.length;
+  const averageBeers = totalParticipants ? (totalVolume / totalParticipants) : 0;
 
   return {
     rankings,
-    brandStats: Object.entries(brandStats)
-      .map(([brand, volume]) => ({ name: brand, volume }))
+    brandStats: Object.values(brandStats)
       .sort((a, b) => b.volume - a.volume),
     summary: {
       totalBeers,
-      totalVolume,
+      totalVolume: Number(totalVolume.toFixed(2)),
       totalParticipants,
-      averageBeers: parseFloat(averageBeers),
+      averageBeers: Number(averageBeers.toFixed(2))
     }
   };
 }; 
