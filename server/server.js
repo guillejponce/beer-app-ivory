@@ -8,8 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Store the Excel file in the project directory
-const EXCEL_FILE = path.join(__dirname, 'beer_counter.xlsx');
+// Store the Excel file in the persistent disk in production, or locally in development
+const EXCEL_FILE = process.env.NODE_ENV === 'production' 
+  ? path.join('/data', 'beer_counter.xlsx')
+  : path.join(__dirname, 'beer_counter.xlsx');
 
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Using Excel file:', EXCEL_FILE);
@@ -18,6 +20,14 @@ const initializeExcelFile = () => {
   console.log('Checking Excel file...');
   
   try {
+    // Ensure the directory exists in production
+    if (process.env.NODE_ENV === 'production') {
+      const dir = path.dirname(EXCEL_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    }
+
     if (!fs.existsSync(EXCEL_FILE)) {
       console.log('Creating new Excel file...');
       const workbook = XLSX.utils.book_new();
