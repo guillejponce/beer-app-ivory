@@ -2,6 +2,119 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const getChileDate = () => {
+  return new Date().toLocaleString('en-US', {
+    timeZone: 'America/Santiago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split(',')[0].split('/').map(n => n.padStart(2, '0')).reverse().join('-');
+};
+
+const TEAM_GOAL = {
+  beers: 5000,
+  deadline: new Date('2025-12-31'),
+  startDate: new Date('2023-01-01')
+};
+
+const calculateProgress = (currentBeers) => {
+  const now = new Date();
+  const totalDays = (TEAM_GOAL.deadline - TEAM_GOAL.startDate) / (1000 * 60 * 60 * 24);
+  const daysPassed = (now - TEAM_GOAL.startDate) / (1000 * 60 * 60 * 24);
+  const daysLeft = (TEAM_GOAL.deadline - now) / (1000 * 60 * 60 * 24);
+  
+  const progress = (currentBeers / TEAM_GOAL.beers) * 100;
+  const expectedProgress = (daysPassed / totalDays) * 100;
+  const beersPerDay = daysLeft > 0 ? (TEAM_GOAL.beers - currentBeers) / daysLeft : 0;
+  
+  return {
+    current: currentBeers,
+    goal: TEAM_GOAL.beers,
+    progress: Number(progress.toFixed(1)),
+    expectedProgress: Number(expectedProgress.toFixed(1)),
+    beersNeeded: TEAM_GOAL.beers - currentBeers,
+    daysLeft: Math.ceil(daysLeft),
+    beersPerDay: Math.ceil(beersPerDay)
+  };
+};
+
+const getAchievements = (stats) => {
+  const achievements = [];
+  const progress = calculateProgress(stats.summary.totalBeers);
+  
+  // Goal Progress Achievement
+  achievements.push({
+    player: 'Team',
+    title: '🎯 Objetivo 5000',
+    description: `¡${progress.current} de ${progress.goal} cervezas! (${progress.progress}%)
+    Faltan ${progress.beersNeeded} cervezas en ${progress.daysLeft} días.
+    Necesitamos ${progress.beersPerDay} cervezas/día para lograrlo!`
+  });
+
+  // Progress Status
+  if (progress.progress > progress.expectedProgress) {
+    achievements.push({
+      player: 'Team',
+      title: '🚀 Ahead of Schedule',
+      description: `¡Vamos adelantados! Deberíamos estar en ${progress.expectedProgress}% y ya vamos en ${progress.progress}%!`
+    });
+  }
+
+  // Personal achievements
+  stats.rankings.forEach(player => {
+    if (player.totalVolume >= 10) {
+      achievements.push({
+        player: player.name,
+        title: '🏆 Ivory Legend',
+        description: `${player.name} ha superado los 10L! Un verdadero Ivory Toast champion!`
+      });
+    }
+    if (player.totalQuantity >= 20) {
+      achievements.push({
+        player: player.name,
+        title: '🌟 Beer Master',
+        description: `${player.name} ha tomado más de 20 cervezas! La leyenda crece!`
+      });
+    }
+  });
+
+  // Team achievements
+  if (stats.summary.totalVolume >= 50) {
+    achievements.push({
+      player: 'Team',
+      title: '🎉 Team Victory',
+      description: `Ivory Toast ha superado los 50L! Somos imparables!`
+    });
+  }
+
+  // Daily achievements
+  const todayStats = stats.dailyStats.find(day => day.date === getChileDate());
+  if (todayStats && todayStats.volume >= 5) {
+    achievements.push({
+      player: 'Team',
+      title: '🔥 Hot Streak',
+      description: `El equipo está on fire! Más de 5L hoy!`
+    });
+  }
+
+  // Brand loyalty
+  const favoriteBeers = stats.brandStats.slice(0, 3).map(beer => ({
+    name: beer.name,
+    percentage: ((beer.volume / stats.summary.totalVolume) * 100).toFixed(1)
+  }));
+
+  if (favoriteBeers.length > 0) {
+    achievements.push({
+      player: 'Team',
+      title: '🍺 Team Favorites',
+      description: `Las cervezas favoritas de Ivory Toast: ${favoriteBeers.map(beer => 
+        `${beer.name} (${beer.percentage}%)`).join(', ')}`
+    });
+  }
+
+  return achievements;
+};
+
 const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
   for (let i = 0; i < retries; i++) {
     try {
@@ -54,7 +167,7 @@ export const addBeerRecord = async (player, brand, volume, amount) => {
     ID: newId,
     PLAYER: player,
     BRAND: brand,
-    DATE: new Date().toISOString().split('T')[0],
+    DATE: getChileDate(),
     VOLUME: volume,
     AMOUNT: amount,
     TOTAL_VOLUME: volume * amount
@@ -124,7 +237,7 @@ export const getStats = async () => {
   const totalParticipants = rankings.length;
   const averageBeers = totalParticipants ? (totalVolume / totalParticipants) : 0;
 
-  return {
+  const stats = {
     rankings,
     brandStats: Object.values(brandStats).sort((a, b) => b.volume - a.volume),
     dailyStats: Object.values(dailyStats)
@@ -140,4 +253,9 @@ export const getStats = async () => {
       averageBeers: Number(averageBeers.toFixed(2))
     }
   };
+
+  // Add achievements to stats
+  stats.achievements = getAchievements(stats);
+  
+  return stats;
 }; 

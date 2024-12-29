@@ -1,413 +1,391 @@
-import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import React, { useEffect, useState } from 'react';
 import { getStats } from '../utils/excelUtils';
-import { Link } from 'react-router-dom';
+import {
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  ToggleButton,
+  ToggleButtonGroup,
+  useTheme,
+  LinearProgress,
+  useMediaQuery,
+} from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const GOAL = 5000;
-const DEADLINE = new Date('2025-12-31T23:59:59');
+const Stats = () => {
+  const [stats, setStats] = useState(null);
+  const [graphMetric, setGraphMetric] = useState('volume');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-// Ivory Toast theme colors
-const COLORS = {
-  primary: '#FFD700', // Gold
-  secondary: '#8B4513', // Saddle Brown (toast color)
-  accent: '#FFA500', // Orange
-  background: '#FFFAF0', // Floral White
-  text: '#4A3728', // Dark Brown
-  success: '#2E8B57', // Sea Green
-  warning: '#FF6B6B', // Light Red
-  chart: '#D4AF37', // Metallic Gold
-};
-
-export default function Stats() {
-  const [stats, setStats] = useState({
-    rankings: [],
-    brandStats: [],
-    summary: { totalBeers: 0, totalVolume: 0, totalParticipants: 0, averageBeers: 0 },
-    dailyStats: []
-  });
-  const [sortBy, setSortBy] = useState('volume');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Beer-themed colors
+  const COLORS = {
+    primary: '#8B4513', // Saddle Brown
+    secondary: '#DEB887', // Burlywood
+    accent: '#D2691E', // Chocolate
+    light: '#FFE4C4', // Bisque
+    background: '#FFF8DC', // Cornsilk
+    highlight: '#DAA520', // Goldenrod
+  };
 
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getStats();
-        setStats(data);
-        setError(null);
-      } catch (err) {
-        setError('¡Oops! Algo salió mal al cargar las estadísticas');
-        console.error('Error loading stats:', err);
-      } finally {
-        setIsLoading(false);
-      }
+    const fetchStats = async () => {
+      const data = await getStats();
+      setStats(data);
     };
-
-    loadStats();
+    fetchStats();
   }, []);
 
-  const getSortedRankings = () => {
-    return [...stats.rankings].sort((a, b) => 
-      sortBy === 'volume' 
-        ? b.totalVolume - a.totalVolume 
-        : b.totalQuantity - a.totalQuantity
-    );
+  const handleMetricChange = (event, newMetric) => {
+    if (newMetric !== null) {
+      setGraphMetric(newMetric);
+    }
   };
 
-  const calculateProgress = () => {
-    const progress = (stats.summary.totalBeers / GOAL) * 100;
-    return Math.min(100, Math.max(0, progress));
-  };
-
-  const calculateDaysLeft = () => {
-    const now = new Date();
-    const diffTime = DEADLINE - now;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
-  };
-
-  const calculateDailyGoal = () => {
-    const daysLeft = calculateDaysLeft();
-    if (daysLeft === 0) return 0;
-    const remaining = GOAL - stats.summary.totalBeers;
-    return Math.max(0, Math.ceil(remaining / daysLeft));
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-amber-50">
-        <div className="text-lg" style={{ color: COLORS.text }}>
-          🍺 Cargando las chelas del Ivory Toast...
-        </div>
-      </div>
-    );
+  if (!stats) {
+    return <Typography>Loading...</Typography>;
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-amber-50">
-        <div className="text-lg" style={{ color: COLORS.warning }}>
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats.rankings.length) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-amber-50">
-        <div className="text-lg" style={{ color: COLORS.text }}>
-          ¡Aún no hay chelas registradas! ¿Qué están esperando, jugadores? 🍻
-        </div>
-      </div>
-    );
-  }
-
-  const sortedRankings = getSortedRankings();
-  const progress = calculateProgress();
-  const daysLeft = calculateDaysLeft();
-  const dailyGoal = calculateDailyGoal();
+  const totalProgress = (stats.summary.totalBeers / 5000) * 100;
 
   return (
-    <div className="min-h-screen bg-amber-50 py-6 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-amber-900">🎯 Meta del Equipo - 5.000 beers</h2>
-          <div className="space-y-4">
-            <div className="relative pt-1">
-              <div className="flex mb-2 items-center justify-between">
-                <div>
-                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-amber-600 text-white">
-                    Progreso Épico
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-semibold inline-block text-amber-900">
-                    {calculateProgress().toFixed(1)}% 🏆
-                  </span>
-                </div>
-              </div>
-              <div className="w-full bg-amber-200 rounded-full h-4">
-                <div
-                  className="bg-amber-600 h-4 rounded-full transition-all duration-500 animate-pulse"
-                  style={{ width: `${calculateProgress()}%` }}
-                >
-                  {calculateProgress() > 10 && (
-                    <span className="absolute inset-0 text-center text-xs text-white leading-4">
-                      {stats.summary.totalBeers} / {GOAL}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h3" gutterBottom align="center" 
+        sx={{ 
+          fontWeight: 'bold', 
+          color: COLORS.primary,
+          textShadow: '2px 2px 4px rgba(139, 69, 19, 0.1)',
+          mb: 4 
+        }}>
+        🏆 Ivory Toast Stats 🍺
+      </Typography>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-amber-900">Chelas Tomadas</h3>
-                <p className="text-3xl font-bold text-amber-700">
-                  {stats.summary.totalBeers} 🍺
-                </p>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-amber-900">Faltan</h3>
-                <p className="text-3xl font-bold text-amber-700">
-                  {GOAL - stats.summary.totalBeers} 🎯
-                </p>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-amber-900">Días Restantes</h3>
-                <p className="text-3xl font-bold text-amber-700">
-                  {calculateDaysLeft()} 📅
-                </p>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-amber-900">Meta Diaria</h3>
-                <p className="text-3xl font-bold text-amber-700">
-                  {calculateDailyGoal()} 🍻
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Progress Bar */}
+      <Paper sx={{ 
+        p: 3, 
+        mb: 4,
+        bgcolor: COLORS.background,
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      }}>
+        <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary }}>
+          Progreso hacia las 5000 cervezas 🎯
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ width: '100%', mr: 1 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={Math.min(totalProgress, 100)} 
+              sx={{
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: COLORS.light,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: COLORS.highlight,
+                }
+              }}
+            />
+          </Box>
+          <Box sx={{ minWidth: 35 }}>
+            <Typography variant="body2" color="text.secondary">{`${totalProgress.toFixed(1)}%`}</Typography>
+          </Box>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          {`${stats.summary.totalBeers} de 5000 cervezas`}
+        </Typography>
+      </Paper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-amber-900">🏆 Ranking</h2>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-amber-900"
-              >
-                <option value="volume">Por Volumen</option>
-                <option value="quantity">Por Cantidad</option>
-              </select>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-amber-200">
-                <thead className="bg-amber-50">
-                  <tr>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Jugador</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-amber-100">
-                  {getSortedRankings().map((player, index) => (
-                    <tr key={player.name} className={index === 0 ? 'bg-amber-50' : ''}>
-                      <td className="px-3 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className="text-lg mr-2">{index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''}</span>
-                          <span className="font-medium text-amber-900">{player.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {player.totalVolume}L
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {player.totalQuantity}
-                      </td>
-                    </tr>
+      {/* Achievements Section */}
+      {stats.achievements && stats.achievements.length > 0 && (
+        <Box mb={4}>
+          <Typography variant="h5" gutterBottom sx={{ 
+            color: COLORS.primary,
+            textShadow: '1px 1px 2px rgba(139, 69, 19, 0.1)',
+            mb: 3
+          }}>
+            🌟 Logros del Equipo
+          </Typography>
+          <Grid container spacing={2}>
+            {stats.achievements.map((achievement, index) => (
+              <Grid item xs={12} md={6} key={index}>
+                <Card sx={{ 
+                  height: '100%',
+                  backgroundColor: achievement.player === 'Team' ? COLORS.background : COLORS.light,
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+                  }
+                }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom color={COLORS.primary}>
+                      {achievement.title}
+                    </Typography>
+                    <Typography variant="body1">
+                      {achievement.description}
+                    </Typography>
+                    <Box mt={1}>
+                      <Chip 
+                        label={achievement.player} 
+                        sx={{ 
+                          backgroundColor: achievement.player === 'Team' ? COLORS.primary : COLORS.accent,
+                          color: 'white',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        size="small"
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Summary Cards */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={6} md={3}>
+          <Paper sx={{ 
+            p: 2, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="h6" color={COLORS.primary}>Total Litros</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLORS.accent }}>{stats.summary.totalVolume}L</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Paper sx={{ 
+            p: 2, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="h6" color={COLORS.primary}>Total Cervezas</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLORS.accent }}>{stats.summary.totalBeers}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Paper sx={{ 
+            p: 2, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="h6" color={COLORS.primary}>Participantes</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLORS.accent }}>{stats.summary.totalParticipants}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Paper sx={{ 
+            p: 2, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="h6" color={COLORS.primary}>Promedio L/Persona</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLORS.accent }}>{stats.summary.averageBeers.toFixed(1)}L</Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Rankings Table */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ 
+            p: 2, 
+            mb: 4,
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}>
+            <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary }}>
+              🏆 Ranking Individual
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: COLORS.primary }}>Jugador</TableCell>
+                    <TableCell align="right" sx={{ color: COLORS.primary }}>Litros</TableCell>
+                    <TableCell align="right" sx={{ color: COLORS.primary }}>Cantidad</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {stats.rankings.map((player, index) => (
+                    <TableRow key={player.name} sx={{ 
+                      backgroundColor: index === 0 ? COLORS.light : 'inherit',
+                      '&:hover': { 
+                        backgroundColor: COLORS.light,
+                        transform: 'scale(1.01)',
+                        transition: 'all 0.2s'
+                      }
+                    }}>
+                      <TableCell>{index === 0 ? `🌟 ${player.name}` : player.name}</TableCell>
+                      <TableCell align="right">{player.totalVolume}L</TableCell>
+                      <TableCell align="right">{player.totalQuantity}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6 text-amber-900">📊 Consumo por Jugador</h2>
-            <div className="w-full overflow-x-auto">
-              <BarChart 
-                width={500} 
-                height={300} 
-                data={getSortedRankings()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
-                <XAxis dataKey="name" stroke="#4A3728" />
-                <YAxis stroke="#4A3728" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#FFFBEB', 
-                    borderColor: '#FFD700',
-                    borderRadius: '0.375rem'
-                  }}
-                />
-                <Legend />
-                <Bar 
-                  dataKey={sortBy === 'volume' ? 'totalVolume' : 'totalQuantity'} 
-                  name={sortBy === 'volume' ? 'Volumen (L)' : 'Cantidad'} 
-                  fill="#D4AF37"
-                />
-              </BarChart>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6 text-amber-900">🍺 Marcas Favoritas</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-amber-200">
-                <thead className="bg-amber-50">
-                  <tr>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Marca</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-amber-100">
-                  {stats.brandStats.map((brand) => (
-                    <tr key={brand.name}>
-                      <td className="px-3 py-4 whitespace-nowrap font-medium text-amber-900">
-                        {brand.name}
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {brand.volume}L
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                        {brand.quantity}
-                      </td>
-                    </tr>
+        {/* Brand Stats */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ 
+            p: 2, 
+            mb: 4,
+            bgcolor: COLORS.background,
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}>
+            <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary }}>
+              🍺 Cervezas Favoritas
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: COLORS.primary }}>Marca</TableCell>
+                    <TableCell align="right" sx={{ color: COLORS.primary }}>Litros</TableCell>
+                    <TableCell align="right" sx={{ color: COLORS.primary }}>Cantidad</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {stats.brandStats.map((brand, index) => (
+                    <TableRow key={brand.name} sx={{ 
+                      backgroundColor: index === 0 ? COLORS.light : 'inherit',
+                      '&:hover': { 
+                        backgroundColor: COLORS.light,
+                        transform: 'scale(1.01)',
+                        transition: 'all 0.2s'
+                      }
+                    }}>
+                      <TableCell>{index === 0 ? `🌟 ${brand.name}` : brand.name}</TableCell>
+                      <TableCell align="right">{brand.volume.toFixed(1)}L</TableCell>
+                      <TableCell align="right">{brand.quantity}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+      </Grid>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6 text-amber-900">📊 Consumo por Marca</h2>
-            <div className="w-full overflow-x-auto">
-              <BarChart 
-                width={500} 
-                height={300} 
-                data={stats.brandStats}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
-                <XAxis dataKey="name" stroke="#4A3728" />
-                <YAxis stroke="#4A3728" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#FFFBEB', 
-                    borderColor: '#FFD700',
-                    borderRadius: '0.375rem'
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="volume" name="Volumen (L)" fill="#8B4513" />
-                <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
-              </BarChart>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-amber-900">📈 Consumo por Día</h2>
-          <div className="w-full overflow-x-auto">
-            <BarChart 
-              width={800} 
-              height={300} 
-              data={stats.dailyStats}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#FFD700" opacity={0.2} />
-              <XAxis 
-                dataKey="date" 
-                stroke="#4A3728"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(date) => {
-                  const [year, month, day] = date.split('-');
-                  return `${day}/${month}`;
-                }}
-              />
-              <YAxis stroke="#4A3728" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#FFFBEB', 
-                  borderColor: '#FFD700',
-                  borderRadius: '0.375rem'
-                }}
-                labelFormatter={(date) => {
-                  const [year, month, day] = date.split('-');
-                  return `${day}/${month}/${year}`;
-                }}
-              />
-              <Legend />
-              <Bar dataKey="volume" name="Volumen (L)" fill="#8B4513" />
-              <Bar dataKey="quantity" name="Cantidad" fill="#D4AF37" />
-            </BarChart>
-          </div>
-
-          <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full divide-y divide-amber-200">
-              <thead className="bg-amber-50">
-                <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Fecha</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Volumen</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-amber-700 uppercase">Cantidad</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-amber-100">
-                {stats.dailyStats.slice().reverse().map((day) => (
-                  <tr key={day.date}>
-                    <td className="px-3 py-4 whitespace-nowrap font-medium text-amber-900">
-                      {new Date(day.date).toLocaleDateString('es-CL')}
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                      {day.volume}L
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-amber-700">
-                      {day.quantity}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-amber-900">📈 Resumen Total</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-amber-900">Total Volumen</h3>
-              <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.totalVolume}L 🍺
-              </p>
-            </div>
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-amber-900">Total Chelas</h3>
-              <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.totalBeers} 🍻
-              </p>
-            </div>
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-amber-900">Jugadores</h3>
-              <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.totalParticipants} 👥
-              </p>
-            </div>
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-amber-900">Promedio/Jugador</h3>
-              <p className="text-3xl font-bold text-amber-700">
-                {stats.summary.averageBeers}L 📊
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center pt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700"
+      {/* Graphs Section */}
+      <Box mb={4}>
+        <Box mb={2} display="flex" justifyContent="center">
+          <ToggleButtonGroup
+            value={graphMetric}
+            exclusive
+            onChange={handleMetricChange}
+            aria-label="graph metric"
+            sx={{ 
+              mb: 2,
+              '& .MuiToggleButton-root': {
+                color: COLORS.primary,
+                '&.Mui-selected': {
+                  backgroundColor: COLORS.light,
+                  color: COLORS.accent,
+                  '&:hover': {
+                    backgroundColor: COLORS.light,
+                  }
+                }
+              }
+            }}
           >
-            ← Volver a Registrar
-          </Link>
-        </div>
-      </div>
-    </div>
+            <ToggleButton value="volume" aria-label="volume">
+              Litros
+            </ToggleButton>
+            <ToggleButton value="quantity" aria-label="quantity">
+              Cantidad
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
+        {/* Daily Stats Chart */}
+        <Paper sx={{ 
+          p: 2, 
+          mb: 4,
+          bgcolor: COLORS.background,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        }}>
+          <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary }}>
+            📈 Consumo Diario
+          </Typography>
+          <Box sx={{ height: isMobile ? 200 : 300 }}>
+            <ResponsiveContainer>
+              <LineChart data={stats.dailyStats}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.secondary} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fill: COLORS.primary }}
+                  interval={isMobile ? 6 : 2}
+                />
+                <YAxis tick={{ fill: COLORS.primary }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: COLORS.background,
+                    borderColor: COLORS.primary
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey={graphMetric === 'volume' ? 'volume' : 'quantity'} 
+                  stroke={COLORS.accent} 
+                  name={graphMetric === 'volume' ? 'Litros' : 'Cantidad'}
+                  strokeWidth={2}
+                  dot={{ fill: COLORS.accent, strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
-} 
+};
+
+export default Stats; 
