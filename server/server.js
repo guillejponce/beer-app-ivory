@@ -8,6 +8,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../build')));
+
 // Store the Excel file in the persistent disk in production, or locally in development
 const EXCEL_FILE = process.env.NODE_ENV === 'production' 
   ? path.join('/data', 'beer_counter.xlsx')
@@ -73,6 +76,12 @@ app.post('/api/beers', (req, res) => {
     console.error('Error writing Excel file:', error);
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// The "catch-all" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../build/index.html'));
 });
 
 const PORT = process.env.PORT || 3001;
