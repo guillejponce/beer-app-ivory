@@ -285,7 +285,7 @@ export default function BeerCounter() {
             <div className="bg-white rounded-lg p-6 max-w-sm w-full">
               <h3 className="text-lg font-medium text-amber-900 mb-4">¿Eliminar registro?</h3>
               <p className="text-sm text-amber-700 mb-4">
-                {deleteConfirm.BRAND} - {deleteConfirm.VOLUME}ml x{deleteConfirm.AMOUNT}
+                {deleteConfirm.BRAND} - {deleteConfirm.VOLUME}L x{deleteConfirm.AMOUNT}
               </p>
               <div className="flex justify-end space-x-4">
                 <button
