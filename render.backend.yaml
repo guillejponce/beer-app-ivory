@@ -3,7 +3,7 @@ services:
     name: beer-counter-api
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: cd .. && npm install && npm run build && cp -r build beer-app/
     startCommand: node server/server.js
     disk:
       name: beer-data

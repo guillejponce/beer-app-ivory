@@ -18,6 +18,7 @@ const EXCEL_FILE = process.env.NODE_ENV === 'production'
 
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Using Excel file:', EXCEL_FILE);
+console.log('Static files path:', path.join(__dirname, '../build'));
 
 const initializeExcelFile = () => {
   console.log('Checking Excel file...');
