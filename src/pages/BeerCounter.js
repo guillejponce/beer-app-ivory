@@ -18,8 +18,25 @@ export default function BeerCounter() {
 
   const loadTodayRecords = async () => {
     const data = await readExcelData();
-    const today = new Date().toISOString().split('T')[0];
-    const todaysData = data.filter(record => record.DATE === today);
+    
+    // Get today's date in Chile's timezone (UTC-3)
+    const chileDate = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
+    const today = chileDate.toLocaleDateString('en-US', {
+      timeZone: 'America/Santiago',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).split('/').reverse().join('-');
+
+    // Filter today's records and sort by timestamp
+    const todaysData = data
+      .filter(record => record.DATE === today)
+      .sort((a, b) => {
+        const timeA = new Date(a.TIMESTAMP || `${a.DATE}T00:00:00-03:00`);
+        const timeB = new Date(b.TIMESTAMP || `${b.DATE}T00:00:00-03:00`);
+        return timeB - timeA; // Most recent first
+      });
+
     setTodayRecords(todaysData);
   };
 
@@ -56,7 +73,17 @@ export default function BeerCounter() {
 
     setIsLoading(true);
     try {
-      const success = await addBeerRecord(currentPlayer.label, brand.label, volume.value, amount);
+      // Get current timestamp in Chile's timezone
+      const now = new Date().toLocaleString("en-US", { timeZone: "America/Santiago" });
+      const timestamp = new Date(now).toISOString();
+
+      const success = await addBeerRecord(
+        currentPlayer.label, 
+        brand.label, 
+        volume.value, 
+        amount,
+        timestamp
+      );
       
       if (success) {
         await loadTodayRecords();
@@ -219,11 +246,12 @@ export default function BeerCounter() {
 
             {todayRecords.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-lg font-medium text-amber-900 mb-4">Registros de Hoy</h3>
+                <h3 className="text-lg font-medium text-amber-900 mb-4">Últimos Registros</h3>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-amber-200">
                     <thead className="bg-amber-50">
                       <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Fecha y Hora</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Jugador</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Marca</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-amber-700">Vol.</th>
@@ -233,16 +261,33 @@ export default function BeerCounter() {
                     </thead>
                     <tbody className="bg-white divide-y divide-amber-100">
                       {todayRecords.map((record) => (
-                        <tr key={record.ID} className={record.PLAYER === currentPlayer.label ? 'bg-amber-50' : 'hover:bg-amber-50'}>
+                        <tr key={record.ID} className={record.PLAYER === currentPlayer?.label ? 'bg-amber-50' : 'hover:bg-amber-50'}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">
+                            <div>
+                              {record.DATE.split('-').reverse().slice(0, 2).join('/')}
+                            </div>
+                            <div className="text-xs text-amber-600">
+                              {record.TIMESTAMP ? (
+                                new Date(record.TIMESTAMP).toLocaleTimeString('es-CL', {
+                                  timeZone: 'America/Santiago',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
+                                })
+                              ) : (
+                                '(sin hora)'
+                              )}
+                            </div>
+                          </td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">
                             {record.PLAYER}
-                            {record.PLAYER === currentPlayer.label && ' 👈'}
+                            {record.PLAYER === currentPlayer?.label && ' 👈'}
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.BRAND}</td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.VOLUME}ml</td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm text-amber-900">{record.AMOUNT}</td>
                           <td className="px-3 py-2 whitespace-nowrap text-sm">
-                            {record.PLAYER === currentPlayer.label && (
+                            {record.PLAYER === currentPlayer?.label && (
                               <button
                                 onClick={() => handleDelete(record)}
                                 className="text-red-600 hover:text-red-900"

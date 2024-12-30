@@ -159,7 +159,7 @@ export const writeExcelData = async (data) => {
   }
 };
 
-export const addBeerRecord = async (player, brand, volume, amount) => {
+export const addBeerRecord = async (player, brand, volume, amount, timestamp) => {
   const currentData = await readExcelData();
   const newId = currentData.length > 0 ? Math.max(...currentData.map(record => record.ID)) + 1 : 1;
   
@@ -170,7 +170,8 @@ export const addBeerRecord = async (player, brand, volume, amount) => {
     DATE: getChileDate(),
     VOLUME: volume,
     AMOUNT: amount,
-    TOTAL_VOLUME: volume * amount
+    TOTAL_VOLUME: volume * amount,
+    TIMESTAMP: timestamp
   };
 
   const updatedData = [...currentData, newRecord];
