@@ -44,6 +44,7 @@ export const BEER_BRANDS = [
   { value: 'mahou', label: 'Mahou' },
   { value: 'dolbek', label: 'Dolbek' },
   { value: 'otras', label: 'Otras' },
+  { value: 'kross', label: 'Kross' },
 ];
 
 export const VOLUMES = [
