@@ -62,28 +62,28 @@ const getAchievements = (stats) => {
 
   // Personal achievements
   stats.rankings.forEach(player => {
-    if (player.totalVolume >= 10) {
+    if (player.totalVolume >= 25) {
       achievements.push({
         player: player.name,
         title: '🏆 Ivory Legend',
-        description: `${player.name} ha superado los 10L! Un verdadero Ivory Toast champion!`
+        description: `${player.name} ha superado los 25L! Un verdadero Ivory Toast champion!`
       });
     }
-    if (player.totalQuantity >= 20) {
+    if (player.totalQuantity >= 100) {
       achievements.push({
         player: player.name,
         title: '🌟 Beer Master',
-        description: `${player.name} ha tomado más de 20 cervezas! La leyenda crece!`
+        description: `${player.name} ha tomado más de 100 cervezas! La leyenda crece!`
       });
     }
   });
 
   // Team achievements
-  if (stats.summary.totalVolume >= 50) {
+  if (stats.summary.totalVolume >= 500) {
     achievements.push({
       player: 'Team',
       title: '🎉 Team Victory',
-      description: `Ivory Toast ha superado los 50L! Somos imparables!`
+      description: `Ivory Toast ha superado los 500L! Somos imparables!`
     });
   }
 

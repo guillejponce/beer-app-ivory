@@ -45,6 +45,7 @@ export const BEER_BRANDS = [
   { value: 'dolbek', label: 'Dolbek' },
   { value: 'otras', label: 'Otras' },
   { value: 'kross', label: 'Kross' },
+  { value: 'cusqueña', label: 'Cusqueña' },
 ];
 
 export const VOLUMES = [
