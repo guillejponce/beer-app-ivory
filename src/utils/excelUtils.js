@@ -62,11 +62,11 @@ const getAchievements = (stats) => {
 
   // Personal achievements
   stats.rankings.forEach(player => {
-    if (player.totalVolume >= 25) {
+    if (player.totalVolume >= 50) {
       achievements.push({
         player: player.name,
         title: '🏆 Ivory Legend',
-        description: `${player.name} ha superado los 25L! Un verdadero Ivory Toast champion!`
+        description: `${player.name} ha superado los 50L! Un verdadero Ivory Toast champion!`
       });
     }
     if (player.totalQuantity >= 100) {
@@ -240,7 +240,9 @@ export const getStats = async () => {
 
   const stats = {
     rankings,
-    brandStats: Object.values(brandStats).sort((a, b) => b.volume - a.volume),
+    brandStats: Object.values(brandStats)
+      .filter(beer => beer.name.toLowerCase() !== 'otras')
+      .sort((a, b) => b.volume - a.volume),
     dailyStats: Object.values(dailyStats)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map(day => ({
@@ -255,8 +257,51 @@ export const getStats = async () => {
     }
   };
 
+  // También actualizar el cálculo de favoriteBeers en getAchievements
+  const favoriteBeers = stats.brandStats.slice(0, 3).map(beer => ({
+    name: beer.name,
+    percentage: ((beer.volume / stats.summary.totalVolume) * 100).toFixed(1)
+  }));
+
   // Add achievements to stats
   stats.achievements = getAchievements(stats);
   
   return stats;
+};
+
+export const getPlayerFavoriteBeer = (data, playerName) => {
+  // Create a map of beer consumption for this player
+  const beerMap = data.reduce((acc, record) => {
+    if (record.PLAYER === playerName) {
+      if (!acc[record.BRAND]) {
+        acc[record.BRAND] = {
+          name: record.BRAND,
+          volume: 0,
+          quantity: 0
+        };
+      }
+      acc[record.BRAND].volume += record.TOTAL_VOLUME;
+      acc[record.BRAND].quantity += record.AMOUNT;
+    }
+    return acc;
+  }, {});
+
+  // Convert to array and sort by volume
+  const beerStats = Object.values(beerMap)
+    .filter(beer => beer.name.toLowerCase() !== 'otras')
+    .sort((a, b) => b.volume - a.volume);
+
+  return beerStats[0] || null;
+};
+
+export const getPlayerLastRecord = (data, playerName) => {
+  const playerRecords = data
+    .filter(record => record.PLAYER === playerName && record.TIMESTAMP)
+    .sort((a, b) => {
+      const dateA = new Date(a.TIMESTAMP);
+      const dateB = new Date(b.TIMESTAMP);
+      return dateB - dateA;
+    });
+
+  return playerRecords[0] || null;
 }; 

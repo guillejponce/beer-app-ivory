@@ -46,6 +46,9 @@ export const BEER_BRANDS = [
   { value: 'otras', label: 'Otras' },
   { value: 'kross', label: 'Kross' },
   { value: 'cusqueña', label: 'Cusqueña' },
+  { value: 'modelo', label: 'Modelo' },
+  { value: 'loa', label: 'Loa' },
+  { value: 'miller', label: 'Miller' },
 ];
 
 export const VOLUMES = [

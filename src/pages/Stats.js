@@ -22,6 +22,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Link } from 'react-router-dom';
 
 const Stats = () => {
   const [stats, setStats] = useState(null);
@@ -261,7 +262,19 @@ const Stats = () => {
                         transition: 'all 0.2s'
                       }
                     }}>
-                      <TableCell>{index === 0 ? `🌟 ${player.name}` : player.name}</TableCell>
+                      <TableCell>
+                        <Link 
+                          to={`/stats/${player.name}`}
+                          style={{ 
+                            color: COLORS.primary,
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {index === 0 ? `🌟 ${player.name}` : player.name}
+                        </Link>
+                      </TableCell>
                       <TableCell align="right">{player.totalVolume}L</TableCell>
                       <TableCell align="right">{player.totalQuantity}</TableCell>
                     </TableRow>
