@@ -121,6 +121,61 @@ app.get('/api/beers', (req, res) => {
   }
 });
 
+// Add a single beer record
+app.post('/api/beers/add', (req, res) => {
+  try {
+    const { record } = req.body;
+    
+    // Leer el archivo actual
+    const workbook = XLSX.readFile(EXCEL_FILE);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const currentData = XLSX.utils.sheet_to_json(worksheet);
+    
+    // Agregar el nuevo registro
+    currentData.push(record);
+    
+    // Escribir de vuelta al archivo
+    const newWorksheet = XLSX.utils.json_to_sheet(currentData);
+    const newWorkbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'BeerCounter');
+    XLSX.writeFile(newWorkbook, EXCEL_FILE);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error adding record to Excel file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete a single beer record
+app.delete('/api/beers/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    // Leer el archivo actual
+    const workbook = XLSX.readFile(EXCEL_FILE);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const currentData = XLSX.utils.sheet_to_json(worksheet);
+    
+    // Filtrar el registro a eliminar
+    const updatedData = currentData.filter(record => record.ID !== id);
+    
+    // Escribir de vuelta al archivo
+    const newWorksheet = XLSX.utils.json_to_sheet(updatedData);
+    const newWorkbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'BeerCounter');
+    XLSX.writeFile(newWorkbook, EXCEL_FILE);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting record from Excel file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Write Excel file (mantener por compatibilidad, pero ya no se usa)
 app.post('/api/beers', (req, res) => {
   try {
     const { data } = req.body;

@@ -38,8 +38,9 @@ app.post('/api/beers/add', (req, res) => {
     
     // Escribir de vuelta al archivo
     const newWorksheet = XLSX.utils.json_to_sheet(currentData);
-    XLSX.utils.book_append_sheet(XLSX.utils.book_new(), newWorksheet, 'BeerCounter');
-    XLSX.writeFile(workbook, 'beer_counter.xlsx');
+    const newWorkbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'BeerCounter');
+    XLSX.writeFile(newWorkbook, 'beer_counter.xlsx');
     
     res.json({ success: true });
   } catch (error) {
@@ -64,8 +65,9 @@ app.delete('/api/beers/:id', (req, res) => {
     
     // Escribir de vuelta al archivo
     const newWorksheet = XLSX.utils.json_to_sheet(updatedData);
-    XLSX.utils.book_append_sheet(XLSX.utils.book_new(), newWorksheet, 'BeerCounter');
-    XLSX.writeFile(workbook, 'beer_counter.xlsx');
+    const newWorkbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'BeerCounter');
+    XLSX.writeFile(newWorkbook, 'beer_counter.xlsx');
     
     res.json({ success: true });
   } catch (error) {
