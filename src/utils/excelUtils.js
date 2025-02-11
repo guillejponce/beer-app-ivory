@@ -187,14 +187,49 @@ export const addBeerRecord = async (player, brand, volume, amount, timestamp) =>
     TIMESTAMP: timestamp
   };
 
-  const updatedData = [...currentData, newRecord];
-  return writeExcelData(updatedData);
+  try {
+    console.log('📦 Enviando nuevo registro:', newRecord);
+    console.log('📏 Tamaño del payload:', JSON.stringify(newRecord).length, 'bytes');
+
+    const response = await fetch(`${API_URL}/beers/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ record: newRecord }),
+    });
+
+    console.log('📡 Status de la respuesta:', response.status);
+    const result = await response.json();
+    console.log('✅ Respuesta del servidor:', result);
+    
+    return result.success;
+  } catch (error) {
+    console.error('❌ Error adding beer record:', error);
+    return false;
+  }
 };
 
 export const deleteBeerRecord = async (id) => {
-  const currentData = await readExcelData();
-  const updatedData = currentData.filter(record => record.ID !== id);
-  return writeExcelData(updatedData);
+  try {
+    console.log('🗑️ Eliminando registro con ID:', id);
+    
+    const response = await fetch(`${API_URL}/beers/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log('📡 Status de la respuesta:', response.status);
+    const result = await response.json();
+    console.log('✅ Respuesta del servidor:', result);
+    
+    return result.success;
+  } catch (error) {
+    console.error('❌ Error deleting beer record:', error);
+    return false;
+  }
 };
 
 export const getStats = async () => {
