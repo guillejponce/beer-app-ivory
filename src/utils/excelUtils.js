@@ -144,17 +144,30 @@ export const readExcelData = async () => {
 
 export const writeExcelData = async (data) => {
   try {
+    const payload = { data };
+    console.log('📦 Payload a enviar:', payload);
+    console.log('📏 Tamaño del payload:', JSON.stringify(payload).length, 'bytes');
+    console.log('🔍 Detalle del payload:', {
+      registros: payload.data.length,
+      primerRegistro: payload.data[0],
+      ultimoRegistro: payload.data[payload.data.length - 1]
+    });
+
     const response = await fetch(`${API_URL}/beers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data }),
+      body: JSON.stringify(payload),
     });
+
+    console.log('📡 Status de la respuesta:', response.status);
     const result = await response.json();
+    console.log('✅ Respuesta del servidor:', result);
+    
     return result.success;
   } catch (error) {
-    console.error('Error writing to Excel file:', error);
+    console.error('❌ Error writing to Excel file:', error);
     return false;
   }
 };
